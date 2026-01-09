@@ -149,7 +149,35 @@ class AvitoBrowserParser:
             # Открываем главную страницу Авито
             print(f"🔍 Открываю страницу Авито...")
             self.driver.get("https://www.avito.ru/")
-            time.sleep(2)  # Ждем загрузки
+            time.sleep(3)  # Ждем загрузки
+            
+            # Пробуем закрыть возможные модальные окна (cookies, регистрация и т.д.)
+            try:
+                # Ищем и закрываем кнопки "Принять", "Закрыть", "Понятно" и т.д.
+                close_buttons = [
+                    "button[data-marker='cookie-policy-agreement']",
+                    "button[class*='close']",
+                    "button[class*='accept']",
+                    "button[aria-label*='Закрыть']",
+                    "//button[contains(text(), 'Принять')]",
+                    "//button[contains(text(), 'Закрыть')]",
+                    "//button[contains(text(), 'Понятно')]"
+                ]
+                for btn_selector in close_buttons:
+                    try:
+                        if btn_selector.startswith("//"):
+                            btn = self.driver.find_element(By.XPATH, btn_selector)
+                        else:
+                            btn = self.driver.find_element(By.CSS_SELECTOR, btn_selector)
+                        if btn and btn.is_displayed():
+                            btn.click()
+                            time.sleep(1)
+                            print("✅ Закрыто модальное окно")
+                            break
+                    except:
+                        continue
+            except:
+                pass  # Игнорируем ошибки при закрытии модальных окон
             
             # Находим поле поиска
             # Попробуем разные селекторы для поля поиска
@@ -173,17 +201,44 @@ class AvitoBrowserParser:
                     search_input = self.wait.until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, selector))
                     )
-                    if search_input:
+                    if search_input and search_input.is_displayed():
+                        print(f"✅ Найдено поле поиска через селектор: {selector}")
                         break
-                except:
+                except Exception as e:
                     continue
             
             if not search_input:
                 # Пробуем найти через XPath
+                xpath_selectors = [
+                    "//input[contains(@placeholder, 'Поиск') or contains(@placeholder, 'поиск')]",
+                    "//input[@type='search']",
+                    "//input[contains(@data-marker, 'search')]",
+                    "//input[contains(@class, 'search')]"
+                ]
+                for xpath in xpath_selectors:
+                    try:
+                        search_input = self.driver.find_element(By.XPATH, xpath)
+                        if search_input and search_input.is_displayed():
+                            print(f"✅ Найдено поле поиска через XPath: {xpath}")
+                            break
+                    except:
+                        continue
+            
+            if not search_input:
+                # Последняя попытка - найти любое поле ввода в области поиска
                 try:
-                    search_input = self.driver.find_element(By.XPATH, "//input[contains(@placeholder, 'Поиск') or contains(@placeholder, 'поиск')]")
+                    # Ищем форму поиска
+                    search_form = self.driver.find_element(By.CSS_SELECTOR, "form[data-marker='search-form'], form[class*='search']")
+                    search_input = search_form.find_element(By.TAG_NAME, "input")
+                    print("✅ Найдено поле поиска через форму")
                 except:
                     print("❌ Не удалось найти поле поиска")
+                    # Сохраняем скриншот для отладки
+                    try:
+                        self.driver.save_screenshot("/app/debug_search_failed.png")
+                        print("💾 Скриншот сохранен в /app/debug_search_failed.png")
+                    except:
+                        pass
                     return False
             
             print(f"📝 Ввожу запрос: {query}")
