@@ -23,14 +23,16 @@ except:
 
 
 class AvitoBrowserParser:
-    def __init__(self, headless: bool = True):
+    def __init__(self, headless: bool = True, proxy: str = None):
         """
         Инициализация парсера с браузером
         
         Args:
             headless: Запускать браузер в фоновом режиме (без окна)
+            proxy: Прокси сервер в формате "http://user:pass@host:port" или "socks5://host:port"
         """
         self.headless = headless
+        self.proxy = proxy
         self.driver = None
         self.wait = None
         
