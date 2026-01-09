@@ -94,12 +94,32 @@ async def query_input(message: Message, state: FSMContext):
     await state.update_data(query=query)
     
     # Пропускаем все промежуточные шаги, сразу к интервалу
+    # Интервал по умолчанию 1 минута - не спрашиваем
+    interval = 1
+    
+    # Сохраняем конфигурацию сразу
+    global parser, chat_id_storage
+    
+    if parser is None:
+        parser = AvitoParser(use_browser=True)
+    
+    parser.config = {
+        'query': query,
+        'check_interval_minutes': interval
+    }
+    
+    # Сохраняем в базу данных
+    db = Database()
+    db.save_config(parser.config)
+    
     await message.answer(
-        f"✅ Название товара: <b>{query}</b>\n\n"
-        "Введи интервал проверки в минутах (по умолчанию 1):",
+        f"✅ Настройка завершена!\n\n"
+        f"📦 Название товара: <b>{query}</b>\n"
+        f"⏰ Интервал: {interval} мин\n\n"
+        "Используй /start_check чтобы начать проверку или /check_now для разовой проверки.",
         parse_mode='HTML'
     )
-    await state.set_state(SearchStates.interval)
+    await state.finish()
     
     # Старый код - закомментирован
     # await message.answer(
@@ -479,9 +499,9 @@ async def main():
     dp.message.register(start_check_handler, Command('start_check'))
     dp.message.register(stop_check_handler, Command('stop_check'))
     
-    # Обработчики для настройки - только название товара и интервал
+    # Обработчики для настройки - только название товара (интервал по умолчанию 1 минута)
     dp.message.register(query_input, SearchStates.query)
-    dp.message.register(interval_input, SearchStates.interval)
+    # dp.message.register(interval_input, SearchStates.interval)  # Закомментировано - интервал по умолчанию 1 мин
     
     # Закомментировано - не нужно для простого поиска
     # dp.message.register(location_input, SearchStates.location, ~F.text.startswith('/skip'))
