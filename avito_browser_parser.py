@@ -241,12 +241,28 @@ class AvitoBrowserParser:
                     print("✅ Найдено поле поиска через форму")
                 except:
                     print("❌ Не удалось найти поле поиска")
-                    # Сохраняем скриншот для отладки
+                    # Сохраняем скриншот и HTML для отладки
                     try:
-                        self.driver.save_screenshot("/app/debug_search_failed.png")
-                        print("💾 Скриншот сохранен в /app/debug_search_failed.png")
-                    except:
-                        pass
+                        screenshot_path = "/app/data/debug_search_failed.png"
+                        html_path = "/app/data/debug_page.html"
+                        self.driver.save_screenshot(screenshot_path)
+                        with open(html_path, 'w', encoding='utf-8') as f:
+                            f.write(self.driver.page_source)
+                        print(f"💾 Скриншот сохранен: {screenshot_path}")
+                        print(f"💾 HTML сохранен: {html_path}")
+                        # Выводим информацию о найденных input элементах
+                        inputs = self.driver.find_elements(By.TAG_NAME, "input")
+                        print(f"🔍 Найдено input элементов на странице: {len(inputs)}")
+                        for i, inp in enumerate(inputs[:5]):  # Показываем первые 5
+                            try:
+                                placeholder = inp.get_attribute('placeholder') or 'нет'
+                                data_marker = inp.get_attribute('data-marker') or 'нет'
+                                input_type = inp.get_attribute('type') or 'нет'
+                                print(f"   Input {i+1}: type={input_type}, placeholder={placeholder[:30]}, data-marker={data_marker}")
+                            except:
+                                pass
+                    except Exception as e:
+                        print(f"⚠️ Ошибка при сохранении отладочной информации: {e}")
                     return False
             
             print(f"📝 Ввожу запрос: {query}")
