@@ -157,9 +157,14 @@ class AvitoBrowserParser:
                 "input[data-marker='search-form/suggest']",
                 "input[placeholder*='Поиск']",
                 "input[placeholder*='поиск']",
+                "input[type='search']",
                 "input[name='q']",
+                "input[id*='search']",
+                "input[class*='search']",
                 "#search-input",
-                "input.input-input-Zpzc1"
+                "input.input-input-Zpzc1",
+                "input[aria-label*='Поиск']",
+                "input[aria-label*='поиск']"
             ]
             
             search_input = None
