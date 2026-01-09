@@ -39,7 +39,10 @@ class AvitoParser:
         
         # Инициализируем браузерный парсер если нужно (но не создаем браузер сразу)
         if use_browser:
-            self.browser_parser = AvitoBrowserParser(headless=True)
+            # Проверяем наличие прокси в переменных окружения
+            import os
+            proxy = os.getenv('AVITO_PROXY', None)
+            self.browser_parser = AvitoBrowserParser(headless=True, proxy=proxy)
             # Не инициализируем браузер сразу, только при первом использовании
             self.browser_parser.driver = None
         else:
