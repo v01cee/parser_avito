@@ -9,18 +9,26 @@ import os
 
 
 class Database:
-    def __init__(self, db_path: str = "avito_parser.db"):
+    def __init__(self, db_path: str = None):
         """
         Инициализация базы данных
         
         Args:
-            db_path: Путь к файлу базы данных
+            db_path: Путь к файлу базы данных (по умолчанию avito_parser.db в текущей директории)
         """
-        self.db_path = db_path
+        if db_path is None:
+            # Используем абсолютный путь для надежности в Docker
+            self.db_path = os.path.join(os.getcwd(), "avito_parser.db")
+        else:
+            self.db_path = db_path
         self.init_database()
     
     def get_connection(self):
         """Получение соединения с базой данных"""
+        # Создаем директорию если её нет
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row  # Для удобного доступа к колонкам по имени
         return conn
