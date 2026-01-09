@@ -120,7 +120,7 @@ async def query_input(message: Message, state: FSMContext):
         "Используй /start_check чтобы начать проверку или /check_now для разовой проверки.",
         parse_mode='HTML'
     )
-    await state.finish()
+    await state.clear()
     
     # Старый код - закомментирован
     # await message.answer(

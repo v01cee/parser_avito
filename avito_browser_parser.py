@@ -53,8 +53,19 @@ class AvitoBrowserParser:
             # Пробуем использовать webdriver-manager
             if USE_WDM:
                 try:
-                    service = Service(ChromeDriverManager().install())
-                except:
+                    driver_path = ChromeDriverManager().install()
+                    # ChromeDriverManager может вернуть путь к директории, нужно найти chromedriver
+                    import os
+                    if os.path.isdir(driver_path):
+                        # Ищем chromedriver в директории
+                        chromedriver_file = os.path.join(driver_path, 'chromedriver')
+                        if not os.path.exists(chromedriver_file):
+                            chromedriver_file = os.path.join(driver_path, 'chromedriver-linux64', 'chromedriver')
+                        if os.path.exists(chromedriver_file):
+                            driver_path = chromedriver_file
+                    service = Service(driver_path)
+                except Exception as e:
+                    print(f"⚠️ ChromeDriverManager не сработал: {e}")
                     # Если не работает, используем системный ChromeDriver
                     service = Service()
             else:
