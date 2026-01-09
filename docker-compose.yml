@@ -14,6 +14,9 @@ services:
       - PYTHONUNBUFFERED=1
       - DISPLAY=:99
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    # Добавляем необходимые capabilities для Chrome
+    cap_add:
+      - SYS_ADMIN
     # Шарим /dev/shm для Chrome (нужно для стабильной работы)
     shm_size: '2gb'
     # Используем .env файл для токена

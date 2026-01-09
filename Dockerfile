@@ -40,6 +40,11 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --d
 
 # Устанавливаем ChromeDriver (будет установлен автоматически через webdriver-manager)
 
+# Устанавливаем Xvfb для виртуального дисплея (нужно для headless режима)
+RUN apt-get update && apt-get install -y \
+    xvfb \
+    && rm -rf /var/lib/apt/lists/*
+
 # Создаем рабочую директорию
 WORKDIR /app
 
