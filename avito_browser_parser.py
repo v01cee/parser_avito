@@ -76,6 +76,9 @@ class AvitoBrowserParser:
         chrome_options.add_argument('--allow-running-insecure-content')
         chrome_options.add_argument('--disable-features=IsolateOrigins,site-per-process')
         
+        # Включаем логирование сетевых запросов для перехвата API
+        chrome_options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
+        
         # Для Docker добавляем дополнительные опции
         chrome_options.add_argument('--remote-debugging-port=9222')
         chrome_options.add_argument('--disable-setuid-sandbox')
@@ -602,6 +605,39 @@ class AvitoBrowserParser:
             print(f"❌ Ошибка при получении ссылки: {e}")
             return None
     
+    def get_api_responses(self) -> List[Dict]:
+        """
+        Перехват API запросов из браузера для получения данных напрямую
+        
+        Returns:
+            Список ответов от API Авито
+        """
+        try:
+            logs = self.driver.get_log('performance')
+            api_responses = []
+            
+            for log in logs:
+                message = json.loads(log['message'])
+                message_type = message.get('message', {}).get('method', '')
+                
+                # Ищем Network.responseReceived или Network.response
+                if message_type in ['Network.responseReceived', 'Network.response']:
+                    response = message.get('message', {}).get('params', {}).get('response', {})
+                    url = response.get('url', '')
+                    
+                    # Ищем API эндпоинты Авито
+                    if 'avito.ru' in url and any(keyword in url for keyword in ['/api/', '/graphql', '/items', '/search']):
+                        api_responses.append({
+                            'url': url,
+                            'status': response.get('status', 0),
+                            'headers': response.get('headers', {})
+                        })
+            
+            return api_responses
+        except Exception as e:
+            print(f"⚠️ Ошибка при перехвате API: {e}")
+            return []
+    
     def get_last_item_info(self) -> Optional[Dict]:
         """
         Получение полной информации о последнем объявлении
@@ -610,6 +646,12 @@ class AvitoBrowserParser:
             Словарь с информацией об объявлении или None
         """
         try:
+            # Сначала пробуем получить через API если доступно
+            api_responses = self.get_api_responses()
+            if api_responses:
+                print(f"🔍 Найдено {len(api_responses)} API запросов")
+                # TODO: Парсинг JSON ответов от API
+            
             link = self.get_last_item_link()
             if not link:
                 return None
