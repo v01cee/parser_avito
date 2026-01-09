@@ -65,16 +65,33 @@ class AvitoBrowserParser:
                             os.path.join(driver_path, 'chromedriver-linux64', 'chromedriver'),
                             os.path.join(driver_path, 'chromedriver', 'chromedriver'),
                         ]
-                        # Также ищем через glob
+                        # Также ищем через glob (включая все поддиректории)
                         chromedriver_files = glob.glob(os.path.join(driver_path, '**/chromedriver'), recursive=True)
+                        # Исключаем файлы с THIRD_PARTY_NOTICES
+                        chromedriver_files = [f for f in chromedriver_files if 'THIRD_PARTY_NOTICES' not in f]
                         possible_paths.extend(chromedriver_files)
                         
+                        found = False
                         for path in possible_paths:
-                            if os.path.exists(path) and os.access(path, os.X_OK):
-                                driver_path = path
-                                break
-                        else:
-                            raise Exception(f"Не найден исполняемый chromedriver в {driver_path}")
+                            if os.path.exists(path) and os.path.isfile(path) and os.access(path, os.X_OK):
+                                # Проверяем что это не директория и не текстовый файл
+                                if not os.path.isdir(path) and 'THIRD_PARTY_NOTICES' not in path:
+                                    driver_path = path
+                                    found = True
+                                    break
+                        
+                        if not found:
+                            # Последняя попытка - найти любой исполняемый файл chromedriver
+                            all_files = glob.glob(os.path.join(driver_path, '**/*'), recursive=True)
+                            for path in all_files:
+                                if os.path.isfile(path) and 'chromedriver' in os.path.basename(path).lower() and 'THIRD_PARTY_NOTICES' not in path:
+                                    if os.access(path, os.X_OK):
+                                        driver_path = path
+                                        found = True
+                                        break
+                            
+                            if not found:
+                                raise Exception(f"Не найден исполняемый chromedriver в {driver_path}")
                     # Если это файл, проверяем что это не THIRD_PARTY_NOTICES
                     elif os.path.isfile(driver_path):
                         if 'THIRD_PARTY_NOTICES' in driver_path or not driver_path.endswith('chromedriver'):
