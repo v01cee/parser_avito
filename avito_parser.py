@@ -68,7 +68,7 @@ class AvitoParser:
                     "price_max": "",
                     "sort": "date"
                 },
-                "check_interval_minutes": 1,
+                "check_interval_minutes": 5,  # Минимум 5 минут чтобы избежать блокировки
                 "notify_on_new": True
             }
             self.save_config_to_db(default_config)
@@ -84,7 +84,7 @@ class AvitoParser:
                 "price_max": "",
                 "sort": "date"
             }),
-            "check_interval_minutes": config.get('check_interval_minutes', 1),
+            "check_interval_minutes": config.get('check_interval_minutes', 5),  # По умолчанию 5 минут
             "notify_on_new": config.get('notify_on_new', True)
         }
         
@@ -114,7 +114,7 @@ class AvitoParser:
                     "price_max": "",
                     "sort": "date"
                 },
-                "check_interval_minutes": 1,
+                "check_interval_minutes": 5,  # Минимум 5 минут чтобы избежать блокировки
                 "notify_on_new": True
             }
             return default_config
@@ -130,7 +130,7 @@ class AvitoParser:
         
         # Сохраняем каждое значение отдельно
         self.db.set_config('search_params', config.get('search_params', {}))
-        self.db.set_config('check_interval_minutes', config.get('check_interval_minutes', 1))
+        self.db.set_config('check_interval_minutes', config.get('check_interval_minutes', 5))
         self.db.set_config('notify_on_new', config.get('notify_on_new', True))
     
     def save_config(self, config: dict = None):
