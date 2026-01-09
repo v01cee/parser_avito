@@ -309,7 +309,13 @@ class AvitoBrowserParser:
             print("⏳ Жду загрузки результатов...")
             
             # Ждем загрузки результатов поиска
-            time.sleep(3)
+            time.sleep(5)  # Увеличиваем время ожидания
+            
+            # Проверяем, не заблокирован ли доступ после поиска
+            page_text = self.driver.page_source.lower()
+            if "доступ ограничен" in page_text or "проблема с ip" in page_text:
+                print("⚠️ Авито заблокировал доступ после поиска")
+                return False
             
             # Проверяем, что мы на странице результатов
             current_url = self.driver.current_url
