@@ -322,10 +322,11 @@ class AvitoBrowserParser:
             search_input.clear()
             time.sleep(0.3)
             # Вводим по одной букве для имитации реального пользователя
+            import random
             for char in query:
                 search_input.send_keys(char)
-                time.sleep(0.1)  # Небольшая задержка между символами
-            time.sleep(1)
+                time.sleep(random.uniform(0.05, 0.2))  # Случайная задержка между символами
+            time.sleep(random.uniform(0.5, 1.5))  # Случайная задержка перед отправкой
             
             # Нажимаем Enter для поиска
             search_input.send_keys(Keys.RETURN)
