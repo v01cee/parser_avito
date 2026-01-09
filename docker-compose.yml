@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  avito-parser-bot:
+    build: .
+    container_name: avito_parser_bot
+    restart: unless-stopped
+    volumes:
+      # База данных сохраняется на хосте
+      - ./avito_parser.db:/app/avito_parser.db
+      # Директория для данных
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DISPLAY=:99
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    # Шарим /dev/shm для Chrome (нужно для стабильной работы)
+    shm_size: '2gb'
+    # Используем .env файл для токена
+    env_file:
+      - .env
+    networks:
+      - avito_network
+    # Логирование
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  avito_network:
+    driver: bridge
+

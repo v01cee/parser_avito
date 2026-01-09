@@ -1,0 +1,8 @@
+requests==2.31.0
+beautifulsoup4==4.12.2
+schedule==1.2.0
+fake-useragent==1.4.0
+aiogram==3.13.1
+selenium==4.15.2
+webdriver-manager==4.0.1
+

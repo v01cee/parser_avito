@@ -1,0 +1,14 @@
+{
+  "search_params": {
+    "query": "iphone",
+    "location": "moskva",
+    "category": "elektronika",
+    "price_min": "20000",
+    "price_max": "80000",
+    "sort": "date"
+  },
+  "check_interval_minutes": 1,
+  "notify_on_new": true
+}
+
+
