@@ -54,18 +54,50 @@ class AvitoBrowserParser:
             if USE_WDM:
                 try:
                     driver_path = ChromeDriverManager().install()
-                    # ChromeDriverManager может вернуть путь к директории, нужно найти chromedriver
+                    # ChromeDriverManager может вернуть путь к директории или неправильный файл
                     import os
+                    import glob
+                    # Если это директория, ищем chromedriver внутри
                     if os.path.isdir(driver_path):
-                        # Ищем chromedriver в директории
-                        chromedriver_file = os.path.join(driver_path, 'chromedriver')
-                        if not os.path.exists(chromedriver_file):
-                            chromedriver_file = os.path.join(driver_path, 'chromedriver-linux64', 'chromedriver')
-                        if os.path.exists(chromedriver_file):
-                            driver_path = chromedriver_file
+                        # Ищем chromedriver в директории и поддиректориях
+                        possible_paths = [
+                            os.path.join(driver_path, 'chromedriver'),
+                            os.path.join(driver_path, 'chromedriver-linux64', 'chromedriver'),
+                            os.path.join(driver_path, 'chromedriver', 'chromedriver'),
+                        ]
+                        # Также ищем через glob
+                        chromedriver_files = glob.glob(os.path.join(driver_path, '**/chromedriver'), recursive=True)
+                        possible_paths.extend(chromedriver_files)
+                        
+                        for path in possible_paths:
+                            if os.path.exists(path) and os.access(path, os.X_OK):
+                                driver_path = path
+                                break
+                        else:
+                            raise Exception(f"Не найден исполняемый chromedriver в {driver_path}")
+                    # Если это файл, проверяем что это не THIRD_PARTY_NOTICES
+                    elif os.path.isfile(driver_path):
+                        if 'THIRD_PARTY_NOTICES' in driver_path or not driver_path.endswith('chromedriver'):
+                            # Ищем chromedriver в той же директории
+                            dir_path = os.path.dirname(driver_path)
+                            chromedriver_file = os.path.join(dir_path, 'chromedriver')
+                            if os.path.exists(chromedriver_file) and os.access(chromedriver_file, os.X_OK):
+                                driver_path = chromedriver_file
+                            else:
+                                # Ищем в поддиректориях
+                                chromedriver_files = glob.glob(os.path.join(dir_path, '**/chromedriver'), recursive=True)
+                                for path in chromedriver_files:
+                                    if os.access(path, os.X_OK):
+                                        driver_path = path
+                                        break
+                                else:
+                                    raise Exception(f"Не найден исполняемый chromedriver в {dir_path}")
+                    
+                    print(f"✅ Используется ChromeDriver: {driver_path}")
                     service = Service(driver_path)
                 except Exception as e:
                     print(f"⚠️ ChromeDriverManager не сработал: {e}")
+                    print("💡 Пробую использовать системный ChromeDriver...")
                     # Если не работает, используем системный ChromeDriver
                     service = Service()
             else:
