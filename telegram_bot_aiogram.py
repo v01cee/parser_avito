@@ -93,7 +93,6 @@ async def query_input(message: Message, state: FSMContext):
     query = message.text
     await state.update_data(query=query)
     
-    # Пропускаем все промежуточные шаги, сразу к интервалу
     # Интервал по умолчанию 1 минута - не спрашиваем
     interval = 1
     
@@ -101,16 +100,18 @@ async def query_input(message: Message, state: FSMContext):
     global parser, chat_id_storage
     
     if parser is None:
-        parser = AvitoParser(use_browser=True)
+        parser = AvitoParser(notify_callback=send_notification_sync, use_db=True, use_browser=True)
     
-    parser.config = {
+    # Обновляем конфигурацию - только название товара
+    parser.config['search_params'] = {
         'query': query,
-        'check_interval_minutes': interval
+        'sort': 'date'
     }
+    parser.config['check_interval_minutes'] = interval
+    parser.save_config()
     
-    # Сохраняем в базу данных
-    db = Database()
-    db.save_config(parser.config)
+    # Сохраняем chat_id для уведомлений
+    chat_id_storage = message.chat.id
     
     await message.answer(
         f"✅ Настройка завершена!\n\n"
@@ -184,46 +185,43 @@ async def query_input(message: Message, state: FSMContext):
 #     await state.set_state(SearchStates.interval)
 
 
-async def interval_input(message: Message, state: FSMContext):
-    """Обработка ввода интервала"""
-    global parser, chat_id_storage
-    
-    try:
-        interval = int(message.text)
-    except ValueError:
-        interval = 1
-    
-    data = await state.get_data()
-    
-    # Сохраняем конфигурацию
-    if parser is None:
-        parser = AvitoParser(notify_callback=send_notification_sync, use_db=True, use_browser=True)
-    
-    # Обновляем конфигурацию - только название товара
-    parser.config['search_params'] = {
-        'query': data.get('query', ''),
-        # 'location': data.get('location', ''),  # Закомментировано
-        # 'category': data.get('category', ''),  # Закомментировано
-        # 'price_min': data.get('price_min', ''),  # Закомментировано
-        # 'price_max': data.get('price_max', ''),  # Закомментировано
-        'sort': 'date'
-    }
-    parser.config['check_interval_minutes'] = interval
-    parser.save_config()
-    
-    # Сохраняем chat_id для уведомлений
-    chat_id_storage = message.chat.id
-    
-    config_text = f"""
-✅ <b>Настройка завершена!</b>
-
-📦 Товар: {data.get('query', 'Не указано')}
-⏰ Интервал: {interval} мин
-
-Используй /start_check чтобы начать проверку!
-"""
-    await message.answer(config_text, parse_mode='HTML')
-    await state.clear()
+# Закомментировано - интервал по умолчанию 1 минута, не спрашиваем
+# async def interval_input(message: Message, state: FSMContext):
+#     """Обработка ввода интервала"""
+#     global parser, chat_id_storage
+#     
+#     try:
+#         interval = int(message.text)
+#     except ValueError:
+#         interval = 1
+#     
+#     data = await state.get_data()
+#     
+#     # Сохраняем конфигурацию
+#     if parser is None:
+#         parser = AvitoParser(notify_callback=send_notification_sync, use_db=True, use_browser=True)
+#     
+#     # Обновляем конфигурацию - только название товара
+#     parser.config['search_params'] = {
+#         'query': data.get('query', ''),
+#         'sort': 'date'
+#     }
+#     parser.config['check_interval_minutes'] = interval
+#     parser.save_config()
+#     
+#     # Сохраняем chat_id для уведомлений
+#     chat_id_storage = message.chat.id
+#     
+#     config_text = f"""
+# ✅ <b>Настройка завершена!</b>
+# 
+# 📦 Товар: {data.get('query', 'Не указано')}
+# ⏰ Интервал: {interval} мин
+# 
+# Используй /start_check чтобы начать проверку!
+# """
+#     await message.answer(config_text, parse_mode='HTML')
+#     await state.clear()
 
 
 # Закомментировано - не нужно для простого поиска
