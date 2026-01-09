@@ -13,6 +13,7 @@ import time
 from typing import Optional, Dict, List
 from datetime import datetime
 import os
+import json
 
 # Пробуем использовать webdriver-manager, если не получается - используем системный ChromeDriver
 try:
