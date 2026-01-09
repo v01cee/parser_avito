@@ -17,8 +17,11 @@ class Database:
             db_path: Путь к файлу базы данных (по умолчанию avito_parser.db в текущей директории)
         """
         if db_path is None:
-            # Используем абсолютный путь для надежности в Docker
-            self.db_path = os.path.join(os.getcwd(), "avito_parser.db")
+            # В Docker используем /app/avito_parser.db, локально - текущая директория
+            if os.path.exists("/app"):
+                self.db_path = "/app/avito_parser.db"
+            else:
+                self.db_path = os.path.join(os.getcwd(), "avito_parser.db")
         else:
             self.db_path = db_path
         self.init_database()

@@ -6,10 +6,10 @@ services:
     container_name: avito_parser_bot
     restart: unless-stopped
     volumes:
-      # База данных сохраняется на хосте
-      - ./avito_parser.db:/app/avito_parser.db
-      # Директория для данных
+      # База данных сохраняется на хосте (монтируем директорию для надежности)
       - ./data:/app/data
+      # Монтируем файл базы данных, создаем если не существует
+      - ./avito_parser.db:/app/avito_parser.db
     environment:
       - PYTHONUNBUFFERED=1
       - DISPLAY=:99
